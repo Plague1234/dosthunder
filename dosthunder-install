@@ -1,0 +1,259 @@
+#!/bin/sh
+
+# DosThunder Version
+VERSION='1.2'
+
+# true / false
+TRUE=0
+FALSE=1
+
+# return code
+SUCCES=0
+FAILURE=1
+
+# colors
+WHITE="$(tput setaf 7)"
+BLUEB="$(tput bold ; tput setaf 4)"
+CYAN="$(tput setaf 6)"
+CYANB="$(tput bold ; tput setaf 6)"
+RED="$(tput setaf 1)"
+YELLOW="$(tput setaf 3)"
+BLINK="$(tput blink)"
+NC="$(tput sgr0)"
+
+# Installation mode
+INSTALL_MODE=''
+
+# Install mode
+INSTALL_NOW='1'
+INSTALL_REINSTALL='2'
+INSTALL_EXIT='3'
+
+# install selection
+download()
+{
+ sleep_clear 0
+ title 'B4ckd00r install'
+ cp dosthunder /usr/bin
+ chmod u+x /usr/bin/dosthunder
+ mkdir /opt/DosThunder
+ sleep 3
+ cp DosThunder.py /opt/DosThunder
+ warn 'Please take a while..'
+ sleep 5
+}
+
+reinstall()
+{
+  sleep_clear 0
+  title 'Reinstall...'
+  rm /usr/bin/dosthunder
+  rm -rf /opt/DosThunder
+  sleep 5
+  cp dosthunder /usr/bin
+  chmod u+x /usr/bin/dosthunder
+  mkdir /opt/DosThunder
+  cp DosThunder.py /opt/DosThunder
+  warn 'Reinstall... Please take a while..'
+  sleep 5
+}
+
+# exit with ctrl+c
+ctrl_c()
+{
+  err "Keyboard Interrupt detected leaving..."
+  exit $FAILURE
+}
+
+trap ctrl_c 2
+
+# check exit status
+check()
+{
+  es=$1
+  func=$2
+  info=$3
+
+  if ["$es" -ne 0]
+  then
+    echo
+    warn "Something went wrong with $func. $info."
+    sleep 5
+  fi
+}
+
+# print formatted output
+wprintf()
+{
+  fmt="${1}"
+
+  shift
+  printf "%s$fmt%s" "$WHITE" "$@" "$NC"
+
+  return $SUCCESS
+
+}
+
+sleep_clear()
+{
+  sleep "$1"
+  clear
+
+  return $SUCCESS
+}
+
+# print warning
+warn()
+{
+  printf "%s[!] WARNING: %s%s\n" "$YELLOW" "$@" "$NC"
+
+  return $SUCCESS
+}
+
+# print error and return flae
+err()
+{
+  printf "%s[-] ERROR: %s%s\n" "$RED" "$@" "$NC"
+
+  return $FAILURE
+}
+
+banner()
+{
+  columns="$(tput cols)"
+  str="--==[ DosThunder-Installer v$VERSION ]==--"
+
+  printf "${BLUEB}%*s${NC}\n" "${COLUMNS:-$(tput cols)}" | tr ' ' '-'
+
+  echo "$str" |
+    while IFS= read -r line
+    do
+      printf "%s%*s\n%s" "$CYANB" $(( (${#line} + columns) / 2)) \
+        "$line" "$NC"
+    done
+
+    printf "${BLUEB}%*s${NC}\n\n\n" "${COLUMNS:-$(tput cols)}" | tr ' ' '-'
+
+    return $SUCCESS
+}
+
+# confirm user input
+confirm()
+{
+  header="$1"
+  ask="$2"
+
+  while true
+  do
+    title "$header"
+    wprintf "$ask"
+    read -r input
+    case $input in
+      y|Y|yes|YES|Yes) return $TRUE ;;
+      n|N|no|NO|No) return $FALSE ;;
+      *) clear ; continue ;;
+    esac
+  done
+
+  return $SUCCESS
+}
+
+# print title menu
+title()
+{
+  banner
+  printf "${CYAN}>> %s${NC}\n\n\n" "${@}"
+
+  return $SUCCESS
+}
+
+# check user uid
+check_uid()
+{
+  if [ "$(id -u)" != '0' ]
+  then
+    err 'You muse be root to install!'
+  fi
+
+  return $SUCCESS
+}
+
+# Just kidding haha
+backdoor()
+{
+  bar=0
+
+  title 'Game Over'
+
+  wprintf '[+] DosThunder installation successfully!'
+  printf "\n\n"
+
+  wprintf 'Yo N00B, b4ckd00r1ng y0ur sy5t3n n0w '
+  while [ $bar -ne 5 ]
+  do
+    wprintf "."
+    sleep 1
+    bar=$((bar + 1))
+  done
+  printf " >> ${BLINK}${WHITE}HACK THE PLANET! DOOR THE PLANET!${NC} <<\n\n"
+  printf "Type dosthunder to ${BLINK}${RED}INJECT YOUR BRAIN NOW!${NC}"
+  printf "\n\n"
+
+  return $SICCESS
+}
+
+ask_install_mode()
+{
+  while
+    [ "$INSTALL_MODE" != "$INSTALL_NOW" ] && \
+    [ "$INSTALL_MODE" != "$INSTALL_REINSTALL" ] && \
+    [ "$INSTALL_MODE" != "$INSTALL_EXIT" ]
+  do
+    title 'Welcome to the DosThunder Installer!!'
+    wprintf '[+] Available installaion modes: '
+    printf "\n
+  1. Install DosThunder
+  2. Reinstall DosThunder
+  3. EXIT \n\n"
+    wprintf '[?] Choose an installation mode: '
+    read -r INSTALL_MODE
+    # select 1
+    if [ "$INSTALL_MODE" = "$INSTALL_NOW" ]
+    then
+      download
+    fi
+
+    # select 2
+    if [ "$INSTALL_MODE" = "$INSTALL_REINSTALL" ]
+    then
+      reinstall
+    fi
+
+    # select 3
+    if [ "$INSTALL_MODE" = "$INSTALL_EXIT" ]
+    then
+      sleep_clear 0
+      exit
+    fi
+    clear
+  done
+
+  return $SUCCESS
+}
+
+# Controller
+main()
+{
+  sleep_clear 0
+  check_uid
+  ask_install_mode
+  sleep_clear 0
+  backdoor
+}
+
+main "$@"
+
+
+
+
+
