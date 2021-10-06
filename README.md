@@ -1,9 +1,9 @@
 # Requirements
-python 2.x
+python 2.x\
+root user\
 
 # how to install
 [root user] >> ./dosthunder-install\
-[normal user] >> sh dosthunder-install\
 chmod +x dosthunder-install\
 
 # happy ending
